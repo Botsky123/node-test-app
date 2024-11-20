@@ -16,7 +16,7 @@ spec:
         app: nodejs-app
     spec:
       imagePullSecrets:
-      - name: myregistrykey  # Reference to the secret created for GCR authentication
+      - name: registrykey  # Reference to the secret created for GCR authentication
       containers:
       - name: nodejs-app
         image: us-central1-docker.pkg.dev/ardhra-977805/test-registry/nodejs-mongo-app_nodejs-app:latest
