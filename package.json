@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-mongo-app",
+  "version": "1.0.0",
+  "description": "Node.js app with MongoDB for user registration",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^6.10.0",
+    "body-parser": "^1.20.1"
+  },
+  "author": "",
+  "license": "ISC"
+}
+

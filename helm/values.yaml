@@ -1,0 +1,20 @@
+replicaCount: 1
+
+image:  
+  repository: us-central1-docker.pkg.dev/ardhra-977805/test-registry/nodejs-mongo-app_nodejs-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 3000
+
+ingress:
+  enabled: false
+
+mongo:
+  image: mongo:latest
+  port: 27017
+
+resources: {}
+ 

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app-deployment
+  namespace: default
+  labels:
+    app: nodejs-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs-app
+  template:
+    metadata:
+      labels:
+        app: nodejs-app
+    spec:
+      imagePullSecrets:
+      - name: myregistrykey  # Reference to the secret created for GCR authentication
+      containers:
+      - name: nodejs-app
+        image: us-central1-docker.pkg.dev/ardhra-977805/test-registry/nodejs-mongo-app_nodejs-app:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-app-service
+  namespace: default
+  labels:
+    app: nodejs-app
+spec:
+  selector:
+    app: nodejs-app
+  ports:
+    - protocol: TCP
+      port: 80           # Exposed port for the service
+      targetPort: 3000   # Port on the container
+  type: ClusterIP        # Service type; change to NodePort or LoadBalancer for external access
