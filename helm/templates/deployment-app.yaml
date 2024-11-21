@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-app
+  labels:
+    app: {{ .Chart.Name }}-app
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-app
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-app
+    spec:
+      containers:
+        - name: nodejs-app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: "{{ .Values.app.image.pullPolicy }}"
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGO_URL
+              value: "mongodb://{{ .Release.Name }}-mongo:{{ .Values.mongo.port }}"
+      imagePullSecrets:
+        {{- if .Values.app.image.pullSecrets }}
+        {{- toYaml .Values.app.image.pullSecrets | nindent 8 }}
+        {{- end }}          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-app
+  labels:
+    app: {{ .Chart.Name }}-app
+spec:
+  type: {{ .Values.app.service.type }}
+  selector:
+    app: {{ .Chart.Name }}-app
+  ports:
+    - protocol: TCP
+      port: {{ .Values.app.service.port }}
+      targetPort: 3000

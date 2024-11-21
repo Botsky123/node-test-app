@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public')); // Serve static files
 
 // MongoDB URI (replace with your MongoDB URI if using MongoDB Atlas)
-const dbURI = 'mongodb://mongo:27017/nodejs-mongo-app'; // Using 'mongo' for Docker container name
+const dbURI = 'mongodb://nodejs-app-mongo:27017/nodejs-mongo-app'; // Using 'mongo' for Docker container name
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
