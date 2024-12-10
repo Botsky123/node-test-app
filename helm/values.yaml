@@ -6,7 +6,7 @@ app:
   replicaCount: 1
   image:
     repository: us-central1-docker.pkg.dev/ardhra-977805/test-registry/nodejs-mongo-app_nodejs-app
-    tag: latest
+    tag: 103
     pullPolicy: IfNotPresent
     pullSecrets:
       - name: registrykey  
