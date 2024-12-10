@@ -45,7 +45,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker build -t ${IMAGE_NAME} .
+                        docker build -t ${IMAGE_NAME} . 
                     """
                 }
             }
@@ -106,6 +106,16 @@ pipeline {
             }
         }
 
+        stage('Update Image Tag') {
+            steps {
+                script {
+                    sh """
+                        sed -i "s/tag: latest/tag: $BUILD_NUMBER/" ./helm/values.yaml
+                    """
+                }
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
@@ -154,4 +164,3 @@ pipeline {
         }
     }
 }
-
