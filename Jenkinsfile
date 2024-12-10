@@ -100,8 +100,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker tag ${IMAGE_NAME} ${GCR_REGISTRY}/${IMAGE_NAME}:latest
-                        docker push ${GCR_REGISTRY}/${IMAGE_NAME}:latest
+                        docker tag ${IMAGE_NAME} ${GCR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${GCR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
             }
@@ -111,7 +111,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        sed -i "s/tag: latest/tag: $BUILD_NUMBER/" ./helm/values.yaml
+                        sed -i "s/tag: latest/tag: ${IMAGE_TAG}/" ./helm/values.yaml
                     """
                 }
             }
