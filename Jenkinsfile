@@ -5,6 +5,7 @@ pipeline {
         GCP_PROJECT = 'ardhra-977805'
         GCR_REGISTRY = 'us-central1-docker.pkg.dev/ardhra-977805/test-registry'
         IMAGE_NAME = 'nodejs-mongo-app_nodejs-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
         K8S_DEPLOYMENT = 'nodejs-app-deployment'
         K8S_NAMESPACE = 'default'
         SONAR_HOST_URL = 'http://35.208.100.145:9000'
@@ -45,7 +46,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker build -t ${IMAGE_NAME} . 
+                        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} . 
                     """
                 }
             }
