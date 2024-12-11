@@ -8,7 +8,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         K8S_DEPLOYMENT = 'nodejs-app-deployment'
         K8S_NAMESPACE = 'default'
-        SONAR_HOST_URL = 'http://35.208.100.145:9000'
+        #SONAR_HOST_URL = 'http://35.208.100.145:9000'
     }
 
     stages {
@@ -21,6 +21,7 @@ pipeline {
         stage('SonarQube Analysis') {
             environment {
                 SONAR_AUTH_TOKEN = credentials('sonarqube-token')
+                SONAR_HOST_URL = credentials('sonarqube-url')
             }
             steps {
                 withSonarQubeEnv('SonarQube') {
