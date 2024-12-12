@@ -8,6 +8,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         K8S_DEPLOYMENT = 'nodejs-app-deployment'
         K8S_NAMESPACE = 'default'
+       
     }
 
     stages {
@@ -34,7 +35,6 @@ pipeline {
                         -Dsonar.login=${SONAR_AUTH_TOKEN}
                     '''
                 }
-                // Export SonarQube report
                 sh '''
                     curl -u ${SONAR_AUTH_TOKEN}: ${SONAR_HOST_URL}/api/issues/search?componentKeys=nodejs-app-jenkins > sonar-report.json
                 '''
@@ -57,12 +57,9 @@ pipeline {
                 script {
                     sh '''
                         #!/bin/bash
-                        # Install prerequisites
                         sudo apt-get install -y wget gnupg
-                        # Add the Trivy repository and GPG key
                         wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
                         echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-                        # Update package list and install Trivy
                         sudo apt-get update
                         sudo apt-get install -y trivy
                     '''
@@ -75,7 +72,6 @@ pipeline {
                 script {
                     sh '''
                         #!/bin/bash
-                        # Scan the image with Trivy and output results to JSON
                         trivy image --severity MEDIUM,HIGH,CRITICAL --format json --output trivy-report.json ${IMAGE_NAME} || true
                     '''
                     archiveArtifacts artifacts: 'trivy-report.json', fingerprint: true
@@ -107,23 +103,18 @@ pipeline {
             }
         }
 
-        stage('Update Image Tag') {
-            steps {
-                script {
-                    sh """
-                        sed -i "s/tag: latest/tag: ${BUILD_NUMBER}/" ./helm/values.yaml
-                    """
-                }
-            }
-        }
-
         stage('Deploy to Kubernetes') {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
                         sh """
                             export KUBECONFIG=${KUBECONFIG_FILE}
-                            helm upgrade --install ${K8S_DEPLOYMENT} ./helm --namespace ${K8S_NAMESPACE}
+                            helm upgrade --install ${IMAGE_NAME} ./helm \
+                                --namespace ${K8S_NAMESPACE} \
+                                --create-namespace \
+                                --set app.image.repository=${GCR_REGISTRY}/${IMAGE_NAME} \
+                                --set app.image.tag=${BUILD_NUMBER} \
+                                --kubeconfig $KUBECONFIG
                         """
                     }
                 }
