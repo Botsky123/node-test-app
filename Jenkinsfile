@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+ 
     environment {
         GCP_PROJECT = 'ardhra-977805'
         GCR_REGISTRY = 'us-central1-docker.pkg.dev/ardhra-977805/test-registry'
@@ -9,14 +9,14 @@ pipeline {
         K8S_DEPLOYMENT = 'nodejs-app-deployment'
         K8S_NAMESPACE = 'default'
     }
-
+ 
     stages {
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Botsky123/node-test-app.git'
             }
         }
-
+ 
         stage('SonarQube Analysis') {
             environment {
                 SONAR_AUTH_TOKEN = credentials('sonarqube-token')
@@ -34,13 +34,14 @@ pipeline {
                         -Dsonar.login=${SONAR_AUTH_TOKEN}
                     '''
                 }
+                // Export SonarQube report
                 sh '''
                     curl -u ${SONAR_AUTH_TOKEN}: ${SONAR_HOST_URL}/api/issues/search?componentKeys=nodejs-app-jenkins > sonar-report.json
                 '''
                 archiveArtifacts artifacts: 'sonar-report.json', fingerprint: true
             }
         }
-
+ 
         stage('Build Docker Image') {
             steps {
                 script {
@@ -50,34 +51,38 @@ pipeline {
                 }
             }
         }
-
+ 
         stage('Download and Install Trivy') {
             steps {
                 script {
                     sh '''
                         #!/bin/bash
+                        # Install prerequisites
                         sudo apt-get install -y wget gnupg
+                        # Add the Trivy repository and GPG key
                         wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
                         echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+                        # Update package list and install Trivy
                         sudo apt-get update
                         sudo apt-get install -y trivy
                     '''
                 }
             }
         }
-
+ 
         stage('Scan for Vulnerabilities') {
             steps {
                 script {
                     sh '''
                         #!/bin/bash
+                        # Scan the image with Trivy and output results to JSON
                         trivy image --severity MEDIUM,HIGH,CRITICAL --format json --output trivy-report.json ${IMAGE_NAME} || true
                     '''
                     archiveArtifacts artifacts: 'trivy-report.json', fingerprint: true
                 }
             }
         }
-
+ 
         stage('Authenticate to GCR') {
             steps {
                 script {
@@ -90,7 +95,7 @@ pipeline {
                 }
             }
         }
-
+ 
         stage('Push Image to GCR') {
             steps {
                 script {
@@ -101,27 +106,31 @@ pipeline {
                 }
             }
         }
-
+ 
+        stage('Update Image Tag') {
+            steps {
+                script {
+                    sh """
+                        sed -i "s/tag: latest/tag: ${BUILD_NUMBER}/" ./helm/values.yaml
+                    """
+                }
+            }
+        }
+ 
         stage('Deploy to Kubernetes') {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
                         sh """
-                            export KUBECONFIG="${KUBECONFIG_FILE}"
-                            kubectl config use-context $(kubectl config current-context) || true
-                            helm upgrade --install ${IMAGE_NAME} ./helm \
-                                --namespace ${K8S_NAMESPACE} \
-                                --create-namespace \
-                                --set app.image.repository=${GCR_REGISTRY}/${IMAGE_NAME} \
-                                --set app.image.tag=${BUILD_NUMBER} \
-                                --kubeconfig \${KUBECONFIG_FILE} --debug
+                            export KUBECONFIG=${KUBECONFIG_FILE}
+                            helm upgrade --install ${K8S_DEPLOYMENT} ./helm --namespace ${K8S_NAMESPACE}
                         """
                     }
                 }
             }
         }
     }
-
+ 
     post {
         always {
             script {
@@ -129,19 +138,19 @@ pipeline {
                 def buildNumber = env.BUILD_NUMBER
                 def pipelineStatus = currentBuild.result ?: 'UNKNOWN'
                 def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
-
+ 
                 def body = """<html>
-                    <body>
-                        <div style="border: 4px solid ${bannerColor}; padding: 10px;">
-                            <h2>${jobName} - Build ${buildNumber}</h2>
-                            <div style="background-color: ${bannerColor}; padding: 10px;"> 
-                                <h3 style="color: white;">Pipeline Status: ${pipelineStatus.toUpperCase()}</h3>
-                            </div>
-                            <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                        </div>
-                    </body>
-                </html>"""
-
+<body>
+<div style="border: 4px solid ${bannerColor}; padding: 10px;">
+<h2>${jobName} - Build ${buildNumber}</h2>
+<div style="background-color: ${bannerColor}; padding: 10px;"> 
+<h3 style="color: white;">Pipeline Status: ${pipelineStatus.toUpperCase()}</h3>
+</div>
+<p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+</div>
+</body>
+</html>"""
+ 
                 emailext (
                     subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
                     body: body,
