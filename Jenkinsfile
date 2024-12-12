@@ -123,7 +123,9 @@ pipeline {
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
                         sh """
                             export KUBECONFIG=${KUBECONFIG_FILE}
-                            helm upgrade --install ${K8S_DEPLOYMENT} ./helm --namespace ${K8S_NAMESPACE}
+                            helm upgrade --install ${K8S_DEPLOYMENT} ./helm \
+                                --namespace ${K8S_NAMESPACE} \
+                                --set app.image.tag=${BUILD_NUMBER}
                         """
                     }
                 }
