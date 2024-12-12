@@ -8,7 +8,6 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         K8S_DEPLOYMENT = 'nodejs-app-deployment'
         K8S_NAMESPACE = 'default'
-       
     }
 
     stages {
@@ -109,12 +108,13 @@ pipeline {
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG_FILE')]) {
                         sh """
                             export KUBECONFIG=${KUBECONFIG_FILE}
+                            kubectl config use-context $(kubectl config current-context) || true
                             helm upgrade --install ${IMAGE_NAME} ./helm \
                                 --namespace ${K8S_NAMESPACE} \
                                 --create-namespace \
                                 --set app.image.repository=${GCR_REGISTRY}/${IMAGE_NAME} \
                                 --set app.image.tag=${BUILD_NUMBER} \
-                                --kubeconfig $KUBECONFIG_FILE
+                                --kubeconfig ${KUBECONFIG_FILE} --debug
                         """
                     }
                 }
