@@ -114,7 +114,7 @@ pipeline {
                                 --create-namespace \
                                 --set app.image.repository=${GCR_REGISTRY}/${IMAGE_NAME} \
                                 --set app.image.tag=${BUILD_NUMBER} \
-                                --kubeconfig $KUBECONFIG
+                                --kubeconfig $KUBECONFIG_FILE
                         """
                     }
                 }
