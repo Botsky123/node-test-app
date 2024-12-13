@@ -22,7 +22,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        cat app.js 
+                        cat views/index.html
                     """
                     // archiveArtifacts artifacts: 'app.txt', fingerprint: true
                 }
