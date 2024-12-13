@@ -18,16 +18,16 @@ pipeline {
             }
         }
 
-        stage('Application file check') {
-            steps {
-                script {
-                    sh """
-                        cat views/index.html
-                    """
-                    // archiveArtifacts artifacts: 'app.txt', fingerprint: true
-                }
-            }
-        }
+        // stage('Application file check') {
+        //     steps {
+        //         script {
+        //             sh """
+        //                 cat views/index.html
+        //             """
+        //             // archiveArtifacts artifacts: 'app.txt', fingerprint: true
+        //         }
+        //     }
+        // }
         stage('SonarQube Analysis') {
             environment {
                 SONAR_AUTH_TOKEN = credentials('sonarqube-token')
@@ -111,7 +111,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker tag ${IMAGE_NAME} ${GCR_REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}
+                        docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${GCR_REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}
                         docker push ${GCR_REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}
                     """
                 }
