@@ -10,16 +10,6 @@ pipeline {
         K8S_NAMESPACE = 'default'
     }
 
-    stage('Application file check') {
-            steps {
-                script {
-                    sh """
-                        cat app.js 
-                    """
-                    archiveArtifacts artifacts: 'app.txt', fingerprint: true
-                }
-            }
-        }
     
     stages {
         stage('Checkout Code') {
@@ -27,7 +17,17 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Botsky123/node-test-app.git'
             }
         }
- 
+
+        stage('Application file check') {
+            steps {
+                script {
+                    sh """
+                        cat app.js 
+                    """
+                    // archiveArtifacts artifacts: 'app.txt', fingerprint: true
+                }
+            }
+        }
         stage('SonarQube Analysis') {
             environment {
                 SONAR_AUTH_TOKEN = credentials('sonarqube-token')
