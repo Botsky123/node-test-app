@@ -20,6 +20,6 @@ mongo:
   replicaCount: 1
   image:
     repository: mongo
-    tag: latest
+    #tag: latest
     port: 27017
   resources: {}  # Set specific CPU/Memory limits if required
