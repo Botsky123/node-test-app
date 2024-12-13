@@ -13,7 +13,7 @@ app:
   service:
     type: LoadBalancer
     port: 3000
-  resources: {}  # Set specific CPU/Memory limits if required
+  resources: {}  # Set specific CPU/Memory limits if requiredd
 
 # MongoDB-specific settings
 # mongo:
