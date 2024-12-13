@@ -9,7 +9,18 @@ pipeline {
         K8S_DEPLOYMENT = 'nodejs-app-deployment'
         K8S_NAMESPACE = 'default'
     }
- 
+
+    stage('Application file check') {
+            steps {
+                script {
+                    sh """
+                        cat app.js 
+                    """
+                    archiveArtifacts artifacts: 'app.txt', fingerprint: true
+                }
+            }
+        }
+    
     stages {
         stage('Checkout Code') {
             steps {
