@@ -10,7 +10,7 @@ pipeline {
         K8S_NAMESPACE = 'default'
     }
 
-    
+    //Checkout Stage
     stages {
         stage('Checkout Code') {
             steps {
@@ -28,6 +28,7 @@ pipeline {
         //         }
         //     }
         // }
+
         stage('SonarQube Analysis') {
             environment {
                 SONAR_AUTH_TOKEN = credentials('sonarqube-token')
@@ -52,7 +53,7 @@ pipeline {
                 archiveArtifacts artifacts: 'sonar-report.json', fingerprint: true
             }
         }
- 
+        
         stage('Build Docker Image') {
             steps {
                 script {
